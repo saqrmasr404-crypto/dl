@@ -64,13 +64,13 @@
           <i class="fa-solid fa-graduation-cap text-3xl"></i>
         </div>
         <h2 class="text-2xl font-bold">المكتبة الرقمية الجامعية</h2>
-        <p class="text-gray-400 text-sm mt-1">أدخل الكود الخاص بك للدخول الفوري</p>
+        <p class="text-gray-400 text-sm mt-1">أدخل اسمك والكود الخاص بك للدخول الآمن</p>
       </div>
 
       <form id="login-form" onsubmit="handleSmartLogin(event)" class="space-y-5">
         <div>
-          <label class="block text-sm font-medium mb-2 text-gray-300">الاسم بالكامل (اختياري)</label>
-          <input type="text" id="user-name" placeholder="أدخل اسمك..." class="w-full p-3.5 rounded-xl glass-input placeholder-gray-500">
+          <label class="block text-sm font-medium mb-2 text-gray-300">الاسم بالكامل</label>
+          <input type="text" id="user-name" required placeholder="أدخل اسمك المسجل..." class="w-full p-3.5 rounded-xl glass-input placeholder-gray-500">
         </div>
 
         <div>
@@ -190,11 +190,16 @@
         if (docSub) {
           currentUser = { role: 'doctor', subjectId: docSub.id, name: nameInput ? `${nameInput} (${docSub.doctor})` : docSub.doctor };
         } else {
-          const student = students.find(s => String(s.code).trim() === codeInput);
+          // التحقق الصارم: يجب تطابق الاسم والكود معاً في جدول الطلاب
+          const student = students.find(s => 
+            String(s.name).trim().toLowerCase() === nameInput.toLowerCase() && 
+            String(s.code).trim() === codeInput
+          );
+          
           if (student) {
-            currentUser = { role: 'student', name: nameInput || student.name };
+            currentUser = { role: 'student', name: student.name };
           } else {
-            alert('الكود السري غير صحيح أو غير مسجل في قاعدة البيانات!');
+            alert('الاسم أو الكود السري غير صحيح، أو غير متطابقين في قاعدة البيانات!');
             return;
           }
         }
@@ -333,7 +338,6 @@
       alert('تم حذف المادة بنجاح!');
     }
 
-    // دالة عرض محتوى المادة الحديثة داخل نافذة تفاعلية (Modal) منسقة
     async function openSubjectContent(subId) {
       await loadDataFromSupabase();
       const sub = subjects.find(s => s.id === subId);
@@ -449,7 +453,6 @@
         if (modalOverlay) modalOverlay.remove();
     }
 
-    // دوال إدارة الأقسام والملفات
     async function addNewSection(subId) {
         const sub = subjects.find(s => s.id === subId);
         if (!sub) return;
@@ -572,4 +575,4 @@
     }
   </script>
 </body>
-</html> 
+</html>
