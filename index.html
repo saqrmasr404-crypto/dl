@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>المكتبة الرقمية الجامعية - Supabase Exact</title>
+  <title>المكتبة الرقمية الجامعية - Supabase VIP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +14,6 @@
       min-height: 100vh;
       color: #ededed;
     }
-    /* تصميم الكروت المطابق تماماً لـ Supabase الداكن */
     .supabase-exact-card {
       background-color: #12141c;
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -36,7 +35,6 @@
       outline: none;
       box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
     }
-    /* زرار الأخضر النيون المطابق للصورة */
     .btn-supabase-exact {
       background-color: #16a34a;
       color: #ffffff;
@@ -61,9 +59,8 @@
       text-overflow: ellipsis;
     }
   </style>
-  <!-- فحص سريع لتسجيل الدخول لمنع أي وميض -->
   <script>
-    const savedUser = localStorage.getItem('currentUser_v12');
+    const savedUser = localStorage.getItem('currentUser_v13');
     if (savedUser) {
       document.documentElement.style.visibility = 'hidden';
       window.addEventListener('DOMContentLoaded', () => {
@@ -74,7 +71,20 @@
     }
   </script>
 </head>
-<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen relative">
+
+  <!-- شاشة التحميل المركزية -->
+  <div id="global-loader" class="hidden fixed inset-0 bg-[#0c0d10]/90 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-fade">
+    <div class="p-4 rounded-2xl bg-green-500/10 text-green-500 border border-green-500/20 mb-4 shadow-lg animate-spin" style="animation-duration: 1.5s;">
+      <i class="fa-solid fa-spinner text-3xl"></i>
+    </div>
+    <p id="loader-text" class="text-white font-semibold text-sm">جاري الاتصال بالنظام السحابي...</p>
+  </div>
+
+  <!-- رسالة النجاح المنبثقة المؤقتة -->
+  <div id="toast-message" class="hidden fixed top-6 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-2xl bg-green-600 text-white font-bold text-sm shadow-2xl border border-green-400 z-50 animate-fade flex items-center gap-2">
+    <i class="fa-solid fa-circle-check text-lg"></i> <span id="toast-text">تم تسجيل الدخول بنجاح! 🚀</span>
+  </div>
 
   <script>
     function playClickSound() {
@@ -92,6 +102,24 @@
         osc.start();
         osc.stop(audioCtx.currentTime + 0.03);
       } catch (e) {}
+    }
+
+    function showLoader(text = "جاري الاتصال بالنظام السحابي...") {
+      document.getElementById('loader-text').innerText = text;
+      document.getElementById('global-loader').classList.remove('hidden');
+    }
+
+    function hideLoader() {
+      document.getElementById('global-loader').classList.add('hidden');
+    }
+
+    function showToast(text) {
+      document.getElementById('toast-text').innerText = text;
+      const toast = document.getElementById('toast-message');
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2000);
     }
   </script>
 
@@ -138,13 +166,11 @@
         </div>
 
         <div class="flex items-center gap-3 flex-wrap">
-          <!-- زر الترس / القائمة الجانبية -->
           <div class="relative">
             <button onclick="playClickSound(); toggleMenuDropdown()" class="p-3 bg-[#181b25] hover:bg-[#202433] text-green-400 rounded-xl border border-white/10 transition flex items-center gap-2" title="قائمة الخيارات">
               <i class="fa-solid fa-gear text-base animate-spin" style="animation-duration: 12s;"></i>
             </button>
             
-            <!-- القائمة المنسدلة للترس -->
             <div id="gear-dropdown" class="hidden absolute left-0 mt-2 w-48 supabase-exact-card rounded-xl p-1.5 shadow-2xl z-50 animate-fade">
               <button onclick="playClickSound(); closeMenuDropdown(); openLecturesModal()" class="w-full text-right px-3 py-2 rounded-lg hover:bg-white/5 text-sm font-medium text-white transition flex items-center gap-2">
                 <i class="fa-solid fa-book text-green-400 text-xs"></i> المحاضرات
@@ -200,7 +226,11 @@
     let dataLoaded = false;
 
     window.onload = async function() {
+      if (!savedUser) {
+        showLoader("جاري تحميل المنصة...");
+      }
       await loadDataFast();
+      hideLoader();
       if (currentUser) {
         showAppScreen();
       }
@@ -240,6 +270,8 @@
     async function handleSmartLogin(e) {
       e.preventDefault();
       playClickSound();
+      showLoader("جاري التحقق من البيانات والولوج...");
+      
       const nameInput = document.getElementById('user-name').value.trim();
       const codeInput = document.getElementById('user-code').value.trim();
 
@@ -260,13 +292,16 @@
           if (student) {
             currentUser = { role: 'student', name: student.name };
           } else {
+            hideLoader();
             alert('الاسم أو الكود السري غير صحيح!');
             return;
           }
         }
       }
 
-      localStorage.setItem('currentUser_v12', JSON.stringify(currentUser));
+      localStorage.setItem('currentUser_v13', JSON.stringify(currentUser));
+      hideLoader();
+      showToast("تم تسجيل الدخول بنجاح! 🚀");
       showAppScreen();
     }
 
@@ -641,7 +676,7 @@
     }
 
     function logout() {
-      localStorage.removeItem('currentUser_v12');
+      localStorage.removeItem('currentUser_v13');
       location.reload();
     }
   </script>
