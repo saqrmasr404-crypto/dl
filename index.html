@@ -211,7 +211,7 @@
 
   <script>
     const SUPABASE_URL = "https://daapugcfilwljswxwku.supabase.co";
-    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const SUPABASE_KEY = "sb_publishable__3MPuIGColJm2-LjAD3VbQ_y4ygMffp";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const adminsConfig = {
@@ -226,7 +226,6 @@
     let currentUser = savedUser ? JSON.parse(savedUser) : null;
     let dataLoaded = false;
 
-    // تحميل البيانات في الخلفية فوراً بدون تعطيل واجهة الدخول
     window.onload = function() {
       backgroundLoadData();
       if (currentUser) {
@@ -273,7 +272,6 @@
       const nameInput = document.getElementById('user-name').value.trim();
       const codeInput = document.getElementById('user-code').value.trim();
 
-      // لو البيانات لسه بتحمل في الخلفية نستناها ثانية واحدة تخلص
       if (!dataLoaded) {
         await backgroundLoadData();
       }
@@ -667,7 +665,6 @@
       }
     }
 
-    // زر المستخدمين بيفتح فوراً من الذاكرة المحلية المؤقتة بدون أي لاج
     function openUsersModal() {
       let info = "الأكواد المسجلة (المتزامنة):\n\n-- الدكاترة --\n";
       subjects.forEach(s => { info += `${s.name}: د. ${s.doctor} (كود: ${s.code})\n`; });
@@ -683,3 +680,4 @@
   </script>
 </body>
 </html>
+
