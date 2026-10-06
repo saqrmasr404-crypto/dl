@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>المكتبة الرقمية الجامعية - Supabase VIP</title>
+  <title>المكتبة الرقمية الجامعية - Supabase Turbo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -60,7 +60,7 @@
     }
   </style>
   <script>
-    const savedUser = localStorage.getItem('currentUser_v14');
+    const savedUser = localStorage.getItem('currentUser_v15');
     if (savedUser) {
       document.documentElement.style.visibility = 'hidden';
       window.addEventListener('DOMContentLoaded', () => {
@@ -73,12 +73,12 @@
 </head>
 <body class="p-4 md:p-8 flex items-center justify-center min-h-screen relative">
 
-  <!-- شاشة التحميل المركزية (بخلفية سوداء ثابتة ومريحة للعين) -->
-  <div id="global-loader" class="fixed inset-0 bg-[#0c0d10] flex flex-col items-center justify-center z-50 transition-opacity duration-300">
-    <div class="p-4 rounded-2xl bg-green-500/10 text-green-500 border border-green-500/20 mb-4 shadow-lg animate-spin" style="animation-duration: 1.5s;">
+  <!-- شاشة التحميل السريعة للولوج -->
+  <div id="global-loader" class="hidden fixed inset-0 bg-[#0c0d10]/95 backdrop-blur-md flex flex-col items-center justify-center z-50 transition-opacity duration-200">
+    <div class="p-4 rounded-2xl bg-green-500/10 text-green-500 border border-green-500/20 mb-4 shadow-lg animate-spin" style="animation-duration: 1s;">
       <i class="fa-solid fa-spinner text-3xl"></i>
     </div>
-    <p id="loader-text" class="text-white font-semibold text-sm">جاري تهيئة المنصة السحابية...</p>
+    <p id="loader-text" class="text-white font-semibold text-sm">جاري التحقق من البيانات والولوج...</p>
   </div>
 
   <!-- رسالة النجاح المنبثقة المؤقتة -->
@@ -104,19 +104,14 @@
       } catch (e) {}
     }
 
-    function showLoader(text = "جاري الاتصال بالنظام السحابي...") {
+    function showLoader(text = "جاري التحقق...") {
       const loader = document.getElementById('global-loader');
       document.getElementById('loader-text').innerText = text;
-      loader.style.opacity = '1';
       loader.classList.remove('hidden');
     }
 
     function hideLoader() {
-      const loader = document.getElementById('global-loader');
-      loader.style.opacity = '0';
-      setTimeout(() => {
-        loader.classList.add('hidden');
-      }, 300);
+      document.getElementById('global-loader').classList.add('hidden');
     }
 
     function showToast(text) {
@@ -231,17 +226,16 @@
     let currentUser = savedUser ? JSON.parse(savedUser) : null;
     let dataLoaded = false;
 
-    window.onload = async function() {
-      showLoader("جاري تحميل المنصة...");
-      await loadDataFast();
-      hideLoader();
+    // تحميل البيانات في الخلفية فوراً بدون تعطيل واجهة الدخول
+    window.onload = function() {
+      backgroundLoadData();
       if (currentUser) {
         showAppScreen();
       }
     };
 
-    async function loadDataFast() {
-      if (dataLoaded && subjects.length > 0) return;
+    async function backgroundLoadData() {
+      if (dataLoaded) return;
       try {
         const [subRes, stuRes, cfgRes] = await Promise.all([
           supabaseClient.from('subjects').select('*'),
@@ -254,7 +248,7 @@
         if (cfgRes.data) scheduleInfo = cfgRes.data.value;
         dataLoaded = true;
       } catch (err) {
-        console.log("استخدام الذاكرة المؤقتة");
+        console.log("جارٍ الاعتماد على الاتصال السحابي");
       }
     }
 
@@ -279,7 +273,10 @@
       const nameInput = document.getElementById('user-name').value.trim();
       const codeInput = document.getElementById('user-code').value.trim();
 
-      await loadDataFast();
+      // لو البيانات لسه بتحمل في الخلفية نستناها ثانية واحدة تخلص
+      if (!dataLoaded) {
+        await backgroundLoadData();
+      }
 
       if (adminsConfig[codeInput]) {
         currentUser = adminsConfig[codeInput];
@@ -303,7 +300,7 @@
         }
       }
 
-      localStorage.setItem('currentUser_v14', JSON.stringify(currentUser));
+      localStorage.setItem('currentUser_v15', JSON.stringify(currentUser));
       hideLoader();
       showToast("تم تسجيل الدخول بنجاح! 🚀");
       showAppScreen();
@@ -469,7 +466,7 @@
         const newSub = { id: String(Date.now()), name: name.trim(), doctor: doctor.trim(), code: code.trim(), content: [] };
         await supabaseClient.from('subjects').upsert([newSub]);
         dataLoaded = false;
-        await loadDataFast();
+        await backgroundLoadData();
         renderSubjects();
         alert('تمت إضافة المادة بنجاح!');
       }
@@ -502,7 +499,7 @@
 
       await supabaseClient.from('subjects').delete().eq('id', subId);
       dataLoaded = false;
-      await loadDataFast();
+      await backgroundLoadData();
       renderSubjects();
       alert('تم الحذف بنجاح!');
     }
@@ -665,14 +662,14 @@
       if (name && code) {
         await supabaseClient.from('students').insert([{ name: name.trim(), code: String(code).trim() }]);
         dataLoaded = false;
-        await loadDataFast();
+        await backgroundLoadData();
         alert('تمت إضافة الطالب بنجاح!');
       }
     }
 
-    async function openUsersModal() {
-      await loadDataFast();
-      let info = "الأكواد المسجلة:\n\n-- الدكاترة --\n";
+    // زر المستخدمين بيفتح فوراً من الذاكرة المحلية المؤقتة بدون أي لاج
+    function openUsersModal() {
+      let info = "الأكواد المسجلة (المتزامنة):\n\n-- الدكاترة --\n";
       subjects.forEach(s => { info += `${s.name}: د. ${s.doctor} (كود: ${s.code})\n`; });
       info += "\n-- الطلاب --\n";
       students.forEach(s => { info += `${s.name} (كود: ${s.code})\n`; });
@@ -680,7 +677,7 @@
     }
 
     function logout() {
-      localStorage.removeItem('currentUser_v14');
+      localStorage.removeItem('currentUser_v15');
       location.reload();
     }
   </script>
