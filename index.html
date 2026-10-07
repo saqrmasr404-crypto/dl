@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>المكتبة الرقمية الجامعية - Supabase Turbo</title>
+  <title>المكتبة الرقمية الجامعية - Supabase Connected</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,12 +78,12 @@
     <div class="p-4 rounded-2xl bg-green-500/10 text-green-500 border border-green-500/20 mb-4 shadow-lg animate-spin" style="animation-duration: 1s;">
       <i class="fa-solid fa-spinner text-3xl"></i>
     </div>
-    <p id="loader-text" class="text-white font-semibold text-sm">جاري التحقق من البيانات والولوج...</p>
+    <p id="loader-text" class="text-white font-semibold text-sm">جاري الاتصال بقاعدة البيانات وسحب البيانات...</p>
   </div>
 
   <!-- رسالة النجاح المنبثقة المؤقتة -->
   <div id="toast-message" class="hidden fixed top-6 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-2xl bg-green-600 text-white font-bold text-sm shadow-2xl border border-green-400 z-50 animate-fade flex items-center gap-2">
-    <i class="fa-solid fa-circle-check text-lg"></i> <span id="toast-text">تم تسجيل الدخول بنجاح! 🚀</span>
+    <i class="fa-solid fa-circle-check text-lg"></i> <span id="toast-text">تم الاتصال وسحب البيانات بنجاح! 🚀</span>
   </div>
 
   <script>
@@ -104,7 +104,7 @@
       } catch (e) {}
     }
 
-    function showLoader(text = "جاري التحقق...") {
+    function showLoader(text = "جاري الاتصال...") {
       const loader = document.getElementById('global-loader');
       document.getElementById('loader-text').innerText = text;
       loader.classList.remove('hidden');
@@ -133,7 +133,7 @@
           <i class="fa-solid fa-database text-2xl"></i>
         </div>
         <h2 class="text-2xl font-bold tracking-tight text-white">المكتبة الرقمية الجامعية</h2>
-        <p class="text-gray-400 text-sm mt-1">سجل دخولك بالنظام السحابي الآمن</p>
+        <p class="text-gray-400 text-sm mt-1">سجل دخولك بالربط السحابي المباشر</p>
       </div>
 
       <form id="login-form" onsubmit="handleSmartLogin(event)" class="space-y-5">
@@ -148,7 +148,7 @@
         </div>
 
         <button type="submit" class="w-full py-3.5 btn-supabase-exact font-bold rounded-xl text-sm transition-all shadow-lg shadow-green-900/20">
-          دخول المنصة ⚡
+          اتصال ودخول المنصة ⚡
         </button>
       </form>
     </div>
@@ -226,28 +226,31 @@
     let currentUser = savedUser ? JSON.parse(savedUser) : null;
     let dataLoaded = false;
 
-    window.onload = function() {
-      backgroundLoadData();
+    window.onload = async function() {
+      await loadDataFromSupabase();
       if (currentUser) {
         showAppScreen();
       }
     };
 
-    async function backgroundLoadData() {
-      if (dataLoaded) return;
+    async function loadDataFromSupabase() {
       try {
+        showLoader("جاري سحب البيانات من Supabase...");
         const [subRes, stuRes, cfgRes] = await Promise.all([
           supabaseClient.from('subjects').select('*'),
           supabaseClient.from('students').select('*'),
-          supabaseClient.from('configs').select('*').eq('key', 'schedule_data').single()
+          supabaseClient.from('configs').select('*').eq('key', 'schedule_data').maybeSingle()
         ]);
 
         if (subRes.data) subjects = subRes.data;
         if (stuRes.data) students = stuRes.data;
-        if (cfgRes.data) scheduleInfo = cfgRes.data.value;
+        if (cfgRes.data && cfgRes.data.value) scheduleInfo = cfgRes.data.value;
+        
         dataLoaded = true;
+        hideLoader();
       } catch (err) {
-        console.log("جارٍ الاعتماد على الاتصال السحابي");
+        hideLoader();
+        console.error("خطأ في الاتصال:", err);
       }
     }
 
@@ -267,32 +270,32 @@
     async function handleSmartLogin(e) {
       e.preventDefault();
       playClickSound();
-      showLoader("جاري التحقق من البيانات والولوج...");
+      showLoader("جاري التحقق من الهوية...");
       
       const nameInput = document.getElementById('user-name').value.trim();
       const codeInput = document.getElementById('user-code').value.trim();
 
       if (!dataLoaded) {
-        await backgroundLoadData();
+        await loadDataFromSupabase();
       }
 
       if (adminsConfig[codeInput]) {
         currentUser = adminsConfig[codeInput];
       } else {
-        const docSub = subjects.find(s => String(s.code).trim() === codeInput);
+        const docSub = subjects.find(s => String(s.code || '').trim() === codeInput);
         if (docSub) {
-          currentUser = { role: 'doctor', subjectId: docSub.id, name: nameInput ? `${nameInput} (د. ${docSub.doctor})` : `دكتور ${docSub.doctor}` };
+          currentUser = { role: 'doctor', subjectId: docSub.id, name: nameInput ? `${nameInput} (د. ${docSub.doctor || docSub.name})` : `دكتور ${docSub.doctor || 'المادة'}` };
         } else {
           const student = students.find(s => 
-            String(s.code).trim() === codeInput && 
-            (!nameInput || String(s.name).trim().toLowerCase() === nameInput.toLowerCase())
+            String(s.code || s.student_code || '').trim() === codeInput && 
+            (!nameInput || String(s.name || s.student_name || '').trim().toLowerCase() === nameInput.toLowerCase())
           );
           
           if (student) {
-            currentUser = { role: 'student', name: student.name };
+            currentUser = { role: 'student', name: student.name || student.student_name || 'طالب' };
           } else {
             hideLoader();
-            alert('الاسم أو الكود السري غير صحيح!');
+            alert('الكود السري غير صحيح أو غير متطابق مع الداتا المسجلة في سوبارباز!');
             return;
           }
         }
@@ -300,7 +303,7 @@
 
       localStorage.setItem('currentUser_v15', JSON.stringify(currentUser));
       hideLoader();
-      showToast("تم تسجيل الدخول بنجاح! 🚀");
+      showToast("تم الاتصال وتسجيل الدخول بنجاح! 🚀");
       showAppScreen();
     }
 
@@ -337,6 +340,11 @@
       const grid = document.getElementById('subjects-grid');
       grid.innerHTML = '';
 
+      if (subjects.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400"><p>لا توجد مواد مسجلة في قاعدة البيانات حالياً.</p></div>`;
+        return;
+      }
+
       subjects.forEach(sub => {
         const isDoc = currentUser.role === 'doctor' && currentUser.subjectId === sub.id;
         const canUpload = currentUser.role === 'admin' || currentUser.role === 'subadmin' || isDoc;
@@ -345,6 +353,9 @@
         
         let totalFiles = 0;
         contentList.forEach(sec => { if (sec.files) totalFiles += sec.files.length; });
+
+        const subName = sub.name || sub.subject_name || 'مادة بدون عنوان';
+        const docName = sub.doctor || sub.doctor_name || 'غير محدد';
 
         grid.innerHTML += `
           <div class="supabase-exact-card rounded-2xl p-6 flex flex-col justify-between relative group animate-fade">
@@ -361,8 +372,8 @@
                   ${canUpload ? `<span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-md">صلاحية رفع</span>` : ''}
                 </div>
               </div>
-              <h3 class="text-lg font-bold text-white mb-1 truncate-text" title="${sub.name}">${sub.name}</h3>
-              <p class="text-xs text-gray-400 mb-4 flex items-center gap-1.5 truncate-text"><i class="fa-solid fa-user-tie text-[11px] text-green-400"></i> ${sub.doctor}</p>
+              <h3 class="text-lg font-bold text-white mb-1 truncate-text" title="${subName}">${subName}</h3>
+              <p class="text-xs text-gray-400 mb-4 flex items-center gap-1.5 truncate-text"><i class="fa-solid fa-user-tie text-[11px] text-green-400"></i> ${docName}</p>
             </div>
 
             <div class="pt-4 border-t border-white/5 flex justify-between items-center">
@@ -463,8 +474,7 @@
       if (name && doctor && code) {
         const newSub = { id: String(Date.now()), name: name.trim(), doctor: doctor.trim(), code: code.trim(), content: [] };
         await supabaseClient.from('subjects').upsert([newSub]);
-        dataLoaded = false;
-        await backgroundLoadData();
+        await loadDataFromSupabase();
         renderSubjects();
         alert('تمت إضافة المادة بنجاح!');
       }
@@ -496,8 +506,7 @@
       if (!confirm('حذف هذه المادة بالكامل؟')) return;
 
       await supabaseClient.from('subjects').delete().eq('id', subId);
-      dataLoaded = false;
-      await backgroundLoadData();
+      await loadDataFromSupabase();
       renderSubjects();
       alert('تم الحذف بنجاح!');
     }
@@ -518,12 +527,15 @@
         document.body.appendChild(modalOverlay);
       }
 
+      const subName = sub.name || sub.subject_name || '';
+      const docName = sub.doctor || sub.doctor_name || '';
+
       let contentHtml = `
         <div class="supabase-exact-card rounded-2xl p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto shadow-2xl relative">
             <div class="flex justify-between items-center mb-5 border-b border-white/10 pb-3">
                 <div class="overflow-hidden pr-2">
-                    <h2 class="text-lg font-bold text-white truncate-text" title="${sub.name}">${sub.name}</h2>
-                    <p class="text-xs text-green-400 mt-0.5 truncate-text"><i class="fa-solid fa-user-tie"></i> د. ${sub.doctor}</p>
+                    <h2 class="text-lg font-bold text-white truncate-text" title="${subName}">${subName}</h2>
+                    <p class="text-xs text-green-400 mt-0.5 truncate-text"><i class="fa-solid fa-user-tie"></i> د. ${docName}</p>
                 </div>
                 <button onclick="playClickSound(); closeSubjectModal()" class="text-gray-400 hover:text-white p-2 rounded-xl bg-white/5 transition flex-shrink-0">
                     <i class="fa-solid fa-xmark"></i>
@@ -620,7 +632,7 @@
         if (isNaN(sIdx) || sIdx < 0 || sIdx >= sub.content.length) return;
 
         const title = prompt('اسم الملف (PDF Title):');
-        const link = prompt('رابط Google Drive للـ PDF:');
+        const link = prompt('رابط الملف (أو Google Drive للـ PDF):');
 
         if (title && link) {
             sub.content[sIdx].files.push({
@@ -659,17 +671,20 @@
       const code = prompt('كود الطالب:');
       if (name && code) {
         await supabaseClient.from('students').insert([{ name: name.trim(), code: String(code).trim() }]);
-        dataLoaded = false;
-        await backgroundLoadData();
-        alert('تمت إضافة الطالب بنجاح!');
+        await loadDataFromSupabase();
+        alert('تمت إضافة الطالب بنجاح وقيده في قاعدة البيانات!');
       }
     }
 
     function openUsersModal() {
-      let info = "الأكواد المسجلة (المتزامنة):\n\n-- الدكاترة --\n";
-      subjects.forEach(s => { info += `${s.name}: د. ${s.doctor} (كود: ${s.code})\n`; });
+      let info = "الطلاب والدكاترة المسجلين في سوبارباز:\n\n-- الدكاترة والمواد --\n";
+      subjects.forEach(s => { 
+        info += `${s.name || s.subject_name}: د. ${s.doctor || s.doctor_name} (كود: ${s.code})\n`; 
+      });
       info += "\n-- الطلاب --\n";
-      students.forEach(s => { info += `${s.name} (كود: ${s.code})\n`; });
+      students.forEach(s => { 
+        info += `${s.name || s.student_name} (كود: ${s.code || s.student_code})\n`; 
+      });
       alert(info);
     }
 
