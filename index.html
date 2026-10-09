@@ -43,11 +43,11 @@
       transform: scale(0.96);
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade {
-      animation: fadeIn 0.4s ease-out forwards;
+      animation: fadeIn 0.3s ease-out forwards;
     }
   </style>
   <script>
@@ -104,6 +104,7 @@
     <!-- الواجهة الرئيسية -->
     <div id="app-screen" class="hidden space-y-6 animate-fade">
       <header class="supabase-exact-card rounded-2xl p-5 flex flex-wrap justify-between items-center gap-4 relative">
+        <!-- معلومات المستخدم والترحيب -->
         <div class="flex items-center space-x-3 space-x-reverse">
           <div class="p-3 bg-green-500/10 rounded-xl border border-green-500/20 text-green-500">
             <i class="fa-solid fa-book-bookmark text-xl"></i>
@@ -114,54 +115,84 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
-          <!-- زر الترس العصري السحابي فوق على الشمال -->
-          <div class="relative">
-            <button onclick="toggleGearMenu()" title="الإعدادات والقائمة" class="p-2.5 bg-white/5 hover:bg-white/10 text-green-400 border border-white/10 rounded-xl transition flex items-center gap-2 btn-smooth shadow-inner">
-              <i class="fa-solid fa-gear text-lg animate-spin" style="animation-duration: 10s;"></i>
-              <span class="text-xs font-semibold hidden md:inline">القائمة</span>
-            </button>
-
-            <!-- قائمة الترس المنسدلة (المواد / السكاشن) -->
-            <div id="gear-dropdown" class="hidden absolute left-0 mt-2 w-48 supabase-exact-card rounded-2xl shadow-2xl p-2 z-50 border border-white/10 animate-fade">
-              <button onclick="switchMainView('subjects'); toggleGearMenu();" class="w-full text-right px-3.5 py-2.5 rounded-xl hover:bg-green-500/15 text-white text-xs font-semibold transition flex items-center gap-2">
-                <i class="fa-solid fa-book text-green-400"></i> المواد الدراسية
-              </button>
-              <button onclick="switchMainView('sections'); toggleGearMenu();" class="w-full text-right px-3.5 py-2.5 rounded-xl hover:bg-green-500/15 text-white text-xs font-semibold transition flex items-center gap-2">
-                <i class="fa-solid fa-layer-group text-green-400"></i> السكاشن والأقسام
-              </button>
-            </div>
-          </div>
-
+        <!-- الأزرار والترس في أقصى اليسار -->
+        <div class="flex items-center gap-3 flex-wrap">
           <div id="management-actions" class="hidden flex gap-2 flex-wrap">
-            <button onclick="openUsersModal()" class="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
+            <button onclick="openUsersModal()" class="px-3.5 py-2 bg-blue-600/80 hover:bg-blue-600 text-xs font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
               <i class="fa-solid fa-users"></i> المستخدمين
             </button>
-            <button onclick="openAddStudentModal()" class="px-4 py-2 bg-emerald-600/80 hover:bg-emerald-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
+            <button onclick="openAddStudentModal()" class="px-3.5 py-2 bg-emerald-600/80 hover:bg-emerald-600 text-xs font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
               <i class="fa-solid fa-user-plus"></i> + طالب
             </button>
-            <button onclick="openAddSubjectModal()" id="admin-add-subject-btn" class="hidden px-4 py-2 bg-purple-600/80 hover:bg-purple-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
+            <button onclick="openAddSubjectModal()" id="admin-add-subject-btn" class="hidden px-3.5 py-2 bg-purple-600/80 hover:bg-purple-600 text-xs font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
               <i class="fa-solid fa-folder-plus"></i> + مادة
             </button>
-            <!-- زر إضافة سكشن جديد مباشر -->
-            <button onclick="openAddGlobalSectionModal()" id="admin-add-section-btn" class="hidden px-4 py-2 bg-teal-600/80 hover:bg-teal-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
+            <button onclick="openAddGlobalSectionModal()" id="admin-add-section-btn" class="hidden px-3.5 py-2 bg-teal-600/80 hover:bg-teal-600 text-xs font-semibold rounded-xl transition flex items-center gap-2 btn-smooth text-white">
               <i class="fa-solid fa-bookmark"></i> + سكشن
             </button>
           </div>
 
-          <button onclick="logout()" class="px-4 py-2 bg-rose-600/20 text-rose-400 border border-rose-500/30 hover:bg-rose-600/30 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth">
+          <!-- زر الخروج -->
+          <button onclick="logout()" class="px-3.5 py-2 bg-rose-600/20 text-rose-400 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-semibold rounded-xl transition flex items-center gap-2 btn-smooth">
             <i class="fa-solid fa-right-from-bracket"></i> خروج
+          </button>
+
+          <!-- زر الترس (قائمة التنقل السريع) -->
+          <button onclick="openNavigationHub()" title="القائمة الرئيسية" class="p-3 bg-white/10 hover:bg-white/20 text-green-400 border border-white/15 rounded-xl transition flex items-center gap-2 btn-smooth shadow-lg">
+            <i class="fa-solid fa-gear text-lg animate-spin" style="animation-duration: 10s;"></i>
+            <span class="text-xs font-bold text-white hidden sm:inline">القائمة</span>
           </button>
         </div>
       </header>
 
-      <!-- منطقة العرض الرئيسية (تتغير بين المواد والسكاشن حسب اختيار الترس) -->
-      <div id="main-content-area">
+      <!-- عنوان القسم الحالي -->
+      <div id="section-header-banner" class="flex items-center justify-between px-2">
+        <h2 id="current-view-title" class="text-xl font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-book text-green-400"></i> المواد الدراسية
+        </h2>
+      </div>
+
+      <!-- منطقة العرض الرئيسية -->
+      <div id="main-content-area" class="mt-2">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="subjects-grid">
         </div>
       </div>
     </div>
 
+  </div>
+
+  <!-- نافذة التنقل السريع بين المواد والسكاشن -->
+  <div id="nav-hub-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade">
+    <div class="supabase-exact-card rounded-3xl p-6 w-full max-w-md border border-white/20 shadow-2xl relative text-center">
+      <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+        <h3 class="text-lg font-bold text-white">قائمة التنقل السريع</h3>
+        <button onclick="closeNavigationHub()" class="text-gray-400 hover:text-white p-2 rounded-xl bg-white/5 border border-white/10 transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <button onclick="switchMainView('subjects'); closeNavigationHub();" class="w-full p-4 rounded-2xl bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white font-bold transition flex items-center justify-between group btn-smooth">
+          <div class="flex items-center gap-3">
+            <span class="p-2.5 bg-green-500/20 text-green-400 rounded-xl">
+              <i class="fa-solid fa-book text-lg"></i>
+            </span>
+            <span>المواد الدراسية</span>
+          </div>
+          <i class="fa-solid fa-chevron-left text-green-400 group-hover:-translate-x-1 transition"></i>
+        </button>
+
+        <button onclick="switchMainView('sections'); closeNavigationHub();" class="w-full p-4 rounded-2xl bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/30 text-white font-bold transition flex items-center justify-between group btn-smooth">
+          <div class="flex items-center gap-3">
+            <span class="p-2.5 bg-teal-500/20 text-teal-400 rounded-xl">
+              <i class="fa-solid fa-layer-group text-lg"></i>
+            </span>
+            <span>السكاشن والأقسام</span>
+          </div>
+          <i class="fa-solid fa-chevron-left text-teal-400 group-hover:-translate-x-1 transition"></i>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -181,9 +212,10 @@
     ];
 
     let subjects = [];
+    let sectionsList = [];
     let students = [];
     let currentUser = JSON.parse(localStorage.getItem('currentUser_v4')) || null;
-    let currentViewMode = 'subjects'; // 'subjects' أو 'sections'
+    let currentViewMode = 'subjects';
 
     function showLoader(text = "جاري التحقق...") {
       const loader = document.getElementById('global-loader');
@@ -195,18 +227,13 @@
       document.getElementById('global-loader').classList.add('hidden');
     }
 
-    function toggleGearMenu() {
-      const dropdown = document.getElementById('gear-dropdown');
-      dropdown.classList.toggle('hidden');
+    function openNavigationHub() {
+      document.getElementById('nav-hub-modal').classList.remove('hidden');
     }
 
-    // إغلاق قائمة الترس عند النقر خارجها
-    window.addEventListener('click', function(e) {
-      if (!e.target.closest('button[onclick="toggleGearMenu()"]') && !e.target.closest('#gear-dropdown')) {
-        const dropdown = document.getElementById('gear-dropdown');
-        if (dropdown) dropdown.classList.add('hidden');
-      }
-    });
+    function closeNavigationHub() {
+      document.getElementById('nav-hub-modal').classList.add('hidden');
+    }
 
     window.onload = function() {
       if (currentUser) {
@@ -221,23 +248,22 @@
     async function loadDataFromSupabase() {
       try {
         const { data: dbStudents } = await supabaseClient.from('students').select('*');
-        if (dbStudents && dbStudents.length > 0) {
-          students = dbStudents;
-        } else {
-          students = [{ name: 'طالب تجريبي', code: '1234' }];
-        }
+        if (dbStudents && dbStudents.length > 0) students = dbStudents;
+        else students = [{ name: 'طالب تجريبي', code: '1234' }];
 
         const { data: dbSubjects } = await supabaseClient.from('subjects').select('*');
-        if (dbSubjects && dbSubjects.length > 0) {
-          subjects = dbSubjects;
-        } else {
+        if (dbSubjects && dbSubjects.length > 0) subjects = dbSubjects;
+        else {
           subjects = defaultSubjects;
           for(let sub of defaultSubjects) {
             await supabaseClient.from('subjects').upsert([sub]);
           }
         }
+
+        const { data: dbSections } = await supabaseClient.from('sections').select('*');
+        if (dbSections) sectionsList = dbSections;
       } catch (err) {
-        console.log("خطأ في الاتصال، جارٍ استخدام النسخة المحلية");
+        console.log("خطأ في الاتصال، جارٍ استخدام البيانات المحلية");
         subjects = defaultSubjects;
         students = [{ name: 'طالب تجريبي', code: '1234' }];
       }
@@ -321,10 +347,12 @@
     async function renderCurrentView() {
       await loadDataFromSupabase();
       const area = document.getElementById('main-content-area');
+      const viewTitle = document.getElementById('current-view-title');
       area.innerHTML = '';
 
       if (currentViewMode === 'subjects') {
-        let gridHtml = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="subjects-grid">`;
+        viewTitle.innerHTML = `<i class="fa-solid fa-book text-green-400"></i> المواد الدراسية`;
+        let gridHtml = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade">`;
         subjects.forEach(sub => {
           const isDoc = currentUser.role === 'doctor' && currentUser.subjectId === sub.id;
           const canUpload = currentUser.role === 'admin' || currentUser.role === 'subadmin' || isDoc;
@@ -335,7 +363,7 @@
           contentList.forEach(sec => { if (sec.files) totalFiles += sec.files.length; });
 
           gridHtml += `
-            <div class="supabase-exact-card rounded-2xl p-6 flex flex-col justify-between relative group animate-fade">
+            <div class="supabase-exact-card rounded-2xl p-6 flex flex-col justify-between relative group">
               <div>
                 <div class="flex justify-between items-start mb-4">
                   <span class="p-3 bg-green-500/10 text-green-400 rounded-xl border border-green-500/20">
@@ -346,7 +374,6 @@
                       <button onclick="editSubject('${sub.id}')" title="تعديل المادة" class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 rounded-lg text-xs font-semibold transition btn-smooth"><i class="fa-solid fa-pen"></i></button>
                       <button onclick="deleteSubject('${sub.id}')" title="حذف المادة" class="px-2.5 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 rounded-lg text-xs font-semibold transition btn-smooth"><i class="fa-solid fa-trash"></i></button>
                     ` : ''}
-                    ${canUpload ? `<span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md">صلاحية</span>` : ''}
                   </div>
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">${sub.name}</h3>
@@ -354,7 +381,7 @@
               </div>
 
               <div class="pt-4 border-t border-white/10 flex justify-between items-center">
-                <span class="text-xs text-gray-400">${totalFiles} ملفات في ${contentList.length} أقسام</span>
+                <span class="text-xs text-gray-400">${totalFiles} ملفات</span>
                 <button onclick="openSubjectContent('${sub.id}')" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 btn-smooth shadow-lg shadow-green-600/20">
                   عرض المادة 📂
                 </button>
@@ -365,97 +392,184 @@
         gridHtml += `</div>`;
         area.innerHTML = gridHtml;
       } else {
-        // عرض السكاشن المستقلة
-        let hubHtml = `
-          <div class="supabase-exact-card rounded-3xl p-6 w-full shadow-2xl relative animate-fade">
-              <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                  <div class="flex items-center gap-3">
-                      <span class="p-3 bg-green-500/10 text-green-400 rounded-xl border border-green-500/20">
-                          <i class="fa-solid fa-layer-group text-xl"></i>
-                      </span>
-                      <div>
-                          <h2 class="text-xl font-bold text-white">قسم السكاشن والأقسام الجامعية</h2>
-                          <p class="text-xs text-gray-400 mt-0.5">جميع السكاشن بأسامي الدكاترة والمواد مرتبة بشكل كامل</p>
-                      </div>
-                  </div>
-              </div>
-              <div class="space-y-6">
-        `;
+        viewTitle.innerHTML = `<i class="fa-solid fa-layer-group text-teal-400"></i> السكاشن والأقسام الجامعية المستقلة`;
+        let hubHtml = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade">`;
 
-        if (subjects.length === 0) {
-          hubHtml += `<div class="text-center py-12 text-gray-400"><p>لا توجد مواد أو سكاشن مسجلة حالياً.</p></div>`;
+        if (sectionsList.length === 0) {
+          hubHtml = `<div class="text-center py-12 text-gray-400 col-span-full"><p>لا توجد سكاشن مسجلة حالياً. اضغط على "+ سكشن" لإضافة أول سكشن.</p></div>`;
         } else {
-          subjects.forEach(sub => {
-            const contentList = sub.content || [];
+          sectionsList.forEach(sec => {
+            const filesCount = sec.files ? sec.files.length : 0;
             hubHtml += `
-              <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
-                <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
-                  <div>
-                    <h3 class="text-base font-bold text-green-300 flex items-center gap-2">
-                      <i class="fa-solid fa-book text-green-400 text-xs"></i> ${sub.name}
-                    </h3>
-                    <span class="text-xs text-gray-400 mt-0.5 block"><i class="fa-solid fa-user-tie text-[10px]"></i> د. ${sub.doctor}</span>
+              <div class="supabase-exact-card rounded-2xl p-6 flex flex-col justify-between relative group">
+                <div>
+                  <div class="flex justify-between items-start mb-4">
+                    <span class="p-3 bg-teal-500/10 text-teal-400 rounded-xl border border-teal-500/20">
+                      <i class="fa-solid fa-bookmark text-2xl"></i>
+                    </span>
+                    ${(currentUser.role === 'admin' || currentUser.role === 'subadmin' || currentUser.role === 'doctor') ? `
+                      <button onclick="deleteGlobalSection('${sec.id}')" title="حذف السكشن" class="px-2.5 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 rounded-lg text-xs font-semibold transition btn-smooth"><i class="fa-solid fa-trash"></i></button>
+                    ` : ''}
                   </div>
-                  <button onclick="openSubjectContent('${sub.id}')" class="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30 text-xs rounded-lg transition btn-smooth">
-                    إدارة محتوى المادة 📂
+                  <h3 class="text-xl font-bold text-white mb-2">${sec.title}</h3>
+                  <p class="text-sm text-gray-300 mb-1 flex items-center gap-2"><i class="fa-solid fa-user-tie text-xs text-teal-400"></i> ${sec.doctor}</p>
+                  <p class="text-xs text-gray-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-book text-xs text-green-400"></i> ${sec.subject_name}</p>
+                </div>
+
+                <div class="pt-4 border-t border-white/10 flex justify-between items-center">
+                  <span class="text-xs text-gray-400">${filesCount} ملفات PDF</span>
+                  <button onclick="openSectionContent('${sec.id}')" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 btn-smooth shadow-lg shadow-teal-600/20">
+                    عرض السكشن 📂
                   </button>
                 </div>
+              </div>
             `;
-
-            if (contentList.length === 0) {
-              hubHtml += `<p class="text-xs text-gray-500 py-1">لا توجد سكاشن مرفوعة لهذه المادة بعد.</p>`;
-            } else {
-              hubHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">`;
-              contentList.forEach((sec, sIdx) => {
-                const fileCount = sec.files ? sec.files.length : 0;
-                hubHtml += `
-                  <div class="bg-[#090a0d] p-3.5 rounded-xl border border-white/5 flex justify-between items-center">
-                    <div>
-                      <h4 class="text-sm font-semibold text-white flex items-center gap-1.5">
-                        <i class="fa-solid fa-bookmark text-green-400 text-xs"></i> ${sec.sectionTitle}
-                      </h4>
-                      <span class="text-[11px] text-gray-400 mt-1 block">${fileCount} ملفات PDF متاحة</span>
-                    </div>
-                    <button onclick="openSubjectContent('${sub.id}')" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition">
-                      فتح
-                    </button>
-                  </div>
-                `;
-              });
-              hubHtml += `</div>`;
-            }
-            hubHtml += `</div>`;
           });
+          hubHtml += `</div>`;
         }
-
-        hubHtml += `</div></div>`;
         area.innerHTML = hubHtml;
       }
     }
 
-    // إضافة سكشن جديد لأي مادة بسرعة من الزرار العلوي
     async function openAddGlobalSectionModal() {
-      if (subjects.length === 0) {
-        alert('لا توجد مواد مسجلة لإضافة سكشن إليها!');
-        return;
-      }
-      let listSub = "اختر المادة المراد إضافة سكشن لها:\n";
-      subjects.forEach((sub, idx) => {
-        listSub += `${idx + 1}. ${sub.name} (د. ${sub.doctor})\n`;
-      });
-      const subIdx = parseInt(prompt(listSub)) - 1;
-      if (isNaN(subIdx) || subIdx < 0 || subIdx >= subjects.length) return;
+      const title = prompt('عنوان السكشن (مثل: سكشن المحاسبة - الأسبوع الأول):');
+      if (!title) return;
+      const doctor = prompt('اسم المعيد أو الدكتور المسؤول عن السكشن:');
+      if (!doctor) return;
+      const subject_name = prompt('اسم المادة التابع لها السكشن:');
+      if (!subject_name) return;
 
-      const sub = subjects[subIdx];
-      const secTitle = prompt(`عنوان السكشن الجديد لمادة "${sub.name}" (مثل: سكشن رقم 1 - د. ${sub.doctor}):`);
-      if (!secTitle) return;
+      const newSec = {
+        id: String(Date.now()),
+        title: title.trim(),
+        doctor: doctor.trim(),
+        subject_name: subject_name.trim(),
+        files: []
+      };
 
-      if (!sub.content) sub.content = [];
-      sub.content.push({ sectionTitle: secTitle.trim(), files: [] });
-
-      await supabaseClient.from('subjects').upsert([sub]);
+      await supabaseClient.from('sections').insert([newSec]);
+      await loadDataFromSupabase();
       renderCurrentView();
-      alert('تمت إضافة السكشن بنجاح وحفظه في سوبارباز!');
+      alert('تمت إضافة السكشن المستقل بنجاح وحفظه في سوبارباز!');
+    }
+
+    async function deleteGlobalSection(secId) {
+      if (!confirm('هل أنت متأكد من حذف هذا السكشن بالكامل؟')) return;
+      await supabaseClient.from('sections').delete().eq('id', secId);
+      await loadDataFromSupabase();
+      renderCurrentView();
+    }
+
+    async function openSectionContent(secId) {
+      await loadDataFromSupabase();
+      const sec = sectionsList.find(s => String(s.id) === String(secId));
+      if (!sec) return;
+
+      const canManage = currentUser.role === 'admin' || currentUser.role === 'subadmin' || currentUser.role === 'doctor';
+
+      let modalOverlay = document.getElementById('subject-modal-overlay');
+      if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'subject-modal-overlay';
+        modalOverlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade';
+        document.body.appendChild(modalOverlay);
+      }
+
+      let contentHtml = `
+        <div class="supabase-exact-card rounded-3xl p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto border border-white/20 shadow-2xl relative">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">${sec.title}</h2>
+                    <p class="text-sm text-teal-300 mt-1"><i class="fa-solid fa-user-tie"></i> ${sec.doctor} | <i class="fa-solid fa-book"></i> ${sec.subject_name}</p>
+                </div>
+                <button onclick="closeSubjectModal()" class="text-gray-400 hover:text-white p-2 rounded-xl bg-white/5 border border-white/10 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+      `;
+
+      if (canManage) {
+          contentHtml += `
+              <div class="mb-6 flex gap-3 flex-wrap bg-teal-950/20 p-4 rounded-2xl border border-teal-500/30">
+                  <button onclick="addFileToSection('${sec.id}')" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
+                      <i class="fa-solid fa-file-arrow-up"></i> + إضافة ملف PDF للسكشن
+                  </button>
+              </div>
+          `;
+      }
+
+      if (!sec.files || sec.files.length === 0) {
+          contentHtml += `
+              <div class="text-center py-12 text-gray-400">
+                  <i class="fa-solid fa-folder-open text-4xl mb-3 text-teal-400"></i>
+                  <p>لا توجد ملفات PDF مرفوعة لهذا السكشن حتى الآن.</p>
+              </div>
+          `;
+      } else {
+          contentHtml += `<div class="space-y-2">`;
+          sec.files.forEach((file, fIndex) => {
+              contentHtml += `
+                  <div class="flex justify-between items-center bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition">
+                      <div class="flex items-center gap-3">
+                          <span class="p-2 bg-red-500/20 text-red-400 rounded-lg border border-red-500/30">
+                              <i class="fa-solid fa-file-pdf"></i>
+                          </span>
+                          <div>
+                              <h4 class="font-semibold text-sm text-white">${file.title}</h4>
+                              <span class="text-xs text-gray-400">${file.date || ''}</span>
+                          </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                          <a href="${file.link}" target="_blank" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5 btn-smooth">
+                              <i class="fa-solid fa-eye"></i> عرض
+                          </a>
+                          ${canManage ? `
+                              <button onclick="deleteFileFromSection('${sec.id}',${fIndex})" class="p-1.5 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 rounded-lg text-xs transition btn-smooth" title="حذف الملف">
+                                  <i class="fa-solid fa-trash"></i>
+                              </button>
+                          ` : ''}
+                      </div>
+                  </div>
+              `;
+          });
+          contentHtml += `</div>`;
+      }
+
+      contentHtml += `</div>`;
+      modalOverlay.innerHTML = contentHtml;
+    }
+
+    async function addFileToSection(secId) {
+      const sec = sectionsList.find(s => String(s.id) === String(secId));
+      if (!sec) return;
+
+      const title = prompt('اسم ملف الـ PDF:');
+      const link = prompt('رابط الملف (رابط مباشر أو Google Drive):');
+
+      if (title && link) {
+        if (!sec.files) sec.files = [];
+        sec.files.push({
+          id: String(Date.now()),
+          title: title.trim(),
+          link: link.trim(),
+          date: new Date().toLocaleDateString('ar-EG')
+        });
+
+        await supabaseClient.from('sections').upsert([sec]);
+        openSectionContent(secId);
+        renderCurrentView();
+        alert('تم رفع الملف بنجاح داخل السكشن وحفظه أونلاين!');
+      }
+    }
+
+    async function deleteFileFromSection(secId, fIndex) {
+      const sec = sectionsList.find(s => String(s.id) === String(secId));
+      if (!sec || !confirm('هل أنت متأكد من حذف هذا الملف؟')) return;
+
+      sec.files.splice(fIndex, 1);
+      await supabaseClient.from('sections').upsert([sec]);
+      openSectionContent(secId);
+      renderCurrentView();
     }
 
     async function openAddSubjectModal() {
@@ -486,10 +600,8 @@
 
       const newName = prompt('تعديل اسم المادة:', sub.name);
       if (newName === null) return;
-      
       const newDoc = prompt('تعديل اسم الدكتور المحاضر:', sub.doctor);
       if (newDoc === null) return;
-
       const newCode = prompt('تعديل كود دخول الدكتور للمادة:', sub.code);
       if (newCode === null) return;
 
@@ -499,13 +611,12 @@
 
       await supabaseClient.from('subjects').upsert([sub]);
       renderCurrentView();
-      alert('تم تحديث بيانات المادة وحفظها أونلاين بنجاح!');
+      alert('تم تحديث بيانات المادة بنجاح!');
     }
 
     async function deleteSubject(subId) {
       if (currentUser.role !== 'admin') return;
-      const confirmDel = confirm('هل أنت متأكد من حذف هذه المادة بالكامل من المنصة؟');
-      if (!confirmDel) return;
+      if (!confirm('هل أنت متأكد من حذف هذه المادة بالكامل؟')) return;
 
       await supabaseClient.from('subjects').delete().eq('id', subId);
       await renderCurrentView();
@@ -520,9 +631,7 @@
       const isDoc = currentUser.role === 'doctor' && currentUser.subjectId === sub.id;
       const canManage = currentUser.role === 'admin' || currentUser.role === 'subadmin' || isDoc;
 
-      if (!sub.content || !Array.isArray(sub.content)) {
-        sub.content = [];
-      }
+      if (!sub.content || !Array.isArray(sub.content)) sub.content = [];
 
       let modalOverlay = document.getElementById('subject-modal-overlay');
       if (!modalOverlay) {
@@ -548,11 +657,11 @@
       if (canManage) {
           contentHtml += `
               <div class="mb-6 flex gap-3 flex-wrap bg-green-950/20 p-4 rounded-2xl border border-green-500/30">
-                  <button onclick="addNewSection('${sub.id}')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
-                      <i class="fa-solid fa-folder-plus"></i> + إضافة سكشن / قسم جديد
+                  <button onclick="addNewSubjectSection('${sub.id}')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
+                      <i class="fa-solid fa-folder-plus"></i> + إضافة قسم داخل المادة
                   </button>
-                  <button onclick="addNewFileToSubject('${sub.id}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
-                      <i class="fa-solid fa-file-arrow-up"></i> + إضافة ملف PDF لقسم
+                  <button onclick="addNewFileToSubjectSection('${sub.id}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
+                      <i class="fa-solid fa-file-arrow-up"></i> + إضافة ملف PDF
                   </button>
               </div>
           `;
@@ -562,7 +671,7 @@
           contentHtml += `
               <div class="text-center py-12 text-gray-400">
                   <i class="fa-solid fa-folder-open text-4xl mb-3 text-green-400"></i>
-                  <p>لا توجد سكاشن أو ملفات مرفوعة لهذه المادة حتى الآن.</p>
+                  <p>لا توجد أقسام أو ملفات مرفوعة لهذه المادة حتى الآن.</p>
               </div>
           `;
       } else {
@@ -575,7 +684,7 @@
                               <i class="fa-solid fa-bookmark text-green-400 text-sm"></i> ${section.sectionTitle || 'محتوى عام'}
                           </h3>
                           ${canManage ? `
-                              <button onclick="deleteSection('${sub.id}',${sIndex})" class="text-rose-400 hover:text-rose-300 text-xs px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 rounded-lg transition btn-smooth">
+                              <button onclick="deleteSubjectSection('${sub.id}',${sIndex})" class="text-rose-400 hover:text-rose-300 text-xs px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 rounded-lg transition btn-smooth">
                                   <i class="fa-solid fa-trash"></i> حذف القسم
                               </button>
                           ` : ''}
@@ -603,7 +712,7 @@
                                       <i class="fa-solid fa-eye"></i> عرض
                                   </a>
                                   ${canManage ? `
-                                      <button onclick="deleteFile('${sub.id}',${sIndex},${fIndex})" class="p-1.5 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 rounded-lg text-xs transition btn-smooth" title="حذف الملف">
+                                      <button onclick="deleteSubjectFile('${sub.id}',${sIndex},${fIndex})" class="p-1.5 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 rounded-lg text-xs transition btn-smooth" title="حذف الملف">
                                           <i class="fa-solid fa-trash"></i>
                                       </button>
                                   ` : ''}
@@ -627,10 +736,10 @@
         if (modal) modal.remove();
     }
 
-    async function addNewSection(subId) {
+    async function addNewSubjectSection(subId) {
         const sub = subjects.find(s => s.id === subId);
         if (!sub) return;
-        const secTitle = prompt('عنوان السكشن أو القسم (مثل: سكشن المحاسبة - الأسبوع الأول):');
+        const secTitle = prompt('عنوان القسم داخل المادة (مثل: المحاضرة الأولى / الأسبوع الأول):');
         if (!secTitle) return;
 
         if (!sub.content) sub.content = [];
@@ -641,10 +750,10 @@
         renderCurrentView();
     }
 
-    async function addNewFileToSubject(subId) {
+    async function addNewFileToSubjectSection(subId) {
         const sub = subjects.find(s => s.id === subId);
         if (!sub || !sub.content || sub.content.length === 0) {
-            alert('الرجاء إضافة قسم أولاً لتتمكن من رفع الملف بداخله!');
+            alert('الرجاء إضافة قسم أولاً داخل المادة!');
             return;
         }
 
@@ -656,8 +765,8 @@
 
         if (isNaN(sIdx) || sIdx < 0 || sIdx >= sub.content.length) return;
 
-        const title = prompt('اسم الملف (PDF Title):');
-        const link = prompt('رابط الملف (رابط مباشر أو رابط Google Drive):');
+        const title = prompt('اسم ملف الـ PDF:');
+        const link = prompt('رابط الملف:');
 
         if (title && link) {
             if (!sub.content[sIdx].files) sub.content[sIdx].files = [];
@@ -671,13 +780,13 @@
             await supabaseClient.from('subjects').upsert([sub]);
             openSubjectContent(subId);
             renderCurrentView();
-            alert('تم رفع الملف بنجاح وحفظه أونلاين!');
+            alert('تم رفع الملف بنجاح!');
         }
     }
 
-    async function deleteSection(subId, sIndex) {
+    async function deleteSubjectSection(subId, sIndex) {
         const sub = subjects.find(s => s.id === subId);
-        if (!sub || !confirm('هل أنت متأكد من حذف هذا القسم بالكامل؟')) return;
+        if (!sub || !confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
 
         sub.content.splice(sIndex, 1);
         await supabaseClient.from('subjects').upsert([sub]);
@@ -685,7 +794,7 @@
         renderCurrentView();
     }
 
-    async function deleteFile(subId, sIndex, fIndex) {
+    async function deleteSubjectFile(subId, sIndex, fIndex) {
         const sub = subjects.find(s => s.id === subId);
         if (!sub || !confirm('هل أنت متأكد من حذف هذا الملف؟')) return;
 
@@ -705,7 +814,7 @@
       if (name && code) {
         await supabaseClient.from('students').insert([{ name: name.trim(), code: code.trim() }]);
         await loadDataFromSupabase();
-        alert('تمت إضافة الطالب بنجاح لقاعدة البيانات أونلاين!');
+        alert('تمت إضافة الطالب بنجاح لقاعدة البيانات!');
       }
     }
 
