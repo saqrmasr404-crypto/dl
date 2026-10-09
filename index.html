@@ -3,114 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>المكتبة الرقمية الجامعية</title>
+  <title>المكتبة الرقمية الجامعية - Supabase Connected</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      background-color: #0c0d10;
       font-family: system-ui, -apple-system, sans-serif;
       min-height: 100vh;
-      color: #f8fafc;
+      color: #ededed;
     }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .supabase-exact-card {
+      background-color: #12141c;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
     }
-    .glass-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(129, 140, 248, 0.4);
+    .supabase-exact-card:hover {
+      border-color: rgba(34, 197, 94, 0.3);
+      transform: translateY(-2px);
     }
-    .glass-input {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+    .supabase-exact-input {
+      background-color: #090a0d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       transition: all 0.2s ease;
     }
-    .glass-input:focus {
-      border-color: #818cf8;
+    .supabase-exact-input:focus {
+      border-color: #22c55e;
       outline: none;
-      background: rgba(255, 255, 255, 0.12);
-      box-shadow: 0 0 15px rgba(129, 140, 248, 0.2);
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
     }
-    .btn-smooth {
-      transition: all 0.2s ease;
+    .btn-supabase-exact {
+      background-color: #16a34a;
+      color: #ffffff;
+      transition: all 0.15s ease;
     }
-    .btn-smooth:active {
-      transform: scale(0.96);
+    .btn-supabase-exact:hover {
+      background-color: #15803d;
+    }
+    .btn-supabase-exact:active {
+      transform: scale(0.98);
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade {
-      animation: fadeIn 0.4s ease-out forwards;
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+    .truncate-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
+  <script>
+    const savedUser = localStorage.getItem('currentUser_v16');
+    if (savedUser) {
+      document.documentElement.style.visibility = 'hidden';
+      window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
+        document.documentElement.style.visibility = 'visible';
+      });
+    }
+  </script>
 </head>
-<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen relative">
+
+  <!-- شاشة التحميل السريعة للولوج -->
+  <div id="global-loader" class="hidden fixed inset-0 bg-[#0c0d10]/95 backdrop-blur-md flex flex-col items-center justify-center z-50 transition-opacity duration-200">
+    <div class="p-4 rounded-2xl bg-green-500/10 text-green-500 border border-green-500/20 mb-4 shadow-lg animate-spin" style="animation-duration: 1s;">
+      <i class="fa-solid fa-spinner text-3xl"></i>
+    </div>
+    <p id="loader-text" class="text-white font-semibold text-sm">جاري الاتصال بقاعدة البيانات وسحب البيانات...</p>
+  </div>
+
+  <!-- رسالة النجاح المنبثقة -->
+  <div id="toast-message" class="hidden fixed top-6 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-2xl bg-green-600 text-white font-bold text-sm shadow-2xl border border-green-400 z-50 animate-fade flex items-center gap-2">
+    <i class="fa-solid fa-circle-check text-lg"></i> <span id="toast-text">تم الاتصال وسحب البيانات بنجاح! 🚀</span>
+  </div>
+
+  <script>
+    function playClickSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.03);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.03);
+      } catch (e) {}
+    }
+
+    function showLoader(text = "جاري الاتصال...") {
+      const loader = document.getElementById('global-loader');
+      document.getElementById('loader-text').innerText = text;
+      loader.classList.remove('hidden');
+    }
+
+    function hideLoader() {
+      document.getElementById('global-loader').classList.add('hidden');
+    }
+
+    function showToast(text) {
+      document.getElementById('toast-text').innerText = text;
+      const toast = document.getElementById('toast-message');
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2000);
+    }
+  </script>
 
   <div class="w-full max-w-6xl animate-fade">
 
     <!-- شاشة تسجيل الدخول -->
-    <div id="login-screen" class="glass-card rounded-3xl p-8 max-w-md mx-auto">
+    <div id="login-screen" class="supabase-exact-card rounded-2xl p-8 max-w-md mx-auto">
       <div class="text-center mb-8">
-        <div class="inline-flex p-4 rounded-2xl bg-indigo-600/30 text-indigo-400 mb-3 border border-indigo-500/30 shadow-inner">
-          <i class="fa-solid fa-graduation-cap text-3xl"></i>
+        <div class="inline-flex p-3.5 rounded-xl bg-green-500/10 text-green-500 mb-3 border border-green-500/20">
+          <i class="fa-solid fa-database text-2xl"></i>
         </div>
-        <h2 class="text-2xl font-bold">المكتبة الرقمية الجامعية</h2>
-        <p class="text-gray-400 text-sm mt-1">أدخل اسمك والكود الخاص بك للدخول الآمن</p>
+        <h2 class="text-2xl font-bold tracking-tight text-white">المكتبة الرقمية الجامعية</h2>
+        <p class="text-gray-400 text-sm mt-1">سجل دخولك بالربط السحابي المباشر</p>
       </div>
 
       <form id="login-form" onsubmit="handleSmartLogin(event)" class="space-y-5">
         <div>
-          <label class="block text-sm font-medium mb-2 text-gray-300">الاسم بالكامل</label>
-          <input type="text" id="user-name" required placeholder="أدخل اسمك المسجل..." class="w-full p-3.5 rounded-xl glass-input placeholder-gray-500">
+          <label class="block text-sm font-medium mb-2 text-gray-300">الاسم بالكامل (أو اتركها فارغة للإدارة)</label>
+          <input type="text" id="user-name" placeholder="مثال: أحمد محمد..." class="w-full p-3.5 rounded-xl supabase-exact-input placeholder-gray-600 text-sm">
         </div>
 
         <div>
           <label class="block text-sm font-medium mb-2 text-gray-300">الكود السري للدخول</label>
-          <input type="password" id="user-code" required placeholder="أدخل كودك الخاص..." class="w-full p-3.5 rounded-xl glass-input placeholder-gray-500">
+          <input type="password" id="user-code" required placeholder="••••••••" class="w-full p-3.5 rounded-xl supabase-exact-input placeholder-gray-600 text-center tracking-widest text-lg font-bold">
         </div>
 
-        <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30 btn-smooth">
-          دخول المنصة 🚀
+        <button type="submit" class="w-full py-3.5 btn-supabase-exact font-bold rounded-xl text-sm transition-all shadow-lg shadow-green-900/20">
+          اتصال ودخول المنصة ⚡
         </button>
       </form>
     </div>
 
     <!-- الواجهة الرئيسية -->
     <div id="app-screen" class="hidden space-y-6 animate-fade">
-      <header class="glass-card rounded-2xl p-5 flex flex-wrap justify-between items-center gap-4">
+      <header class="supabase-exact-card rounded-2xl p-5 flex flex-wrap justify-between items-center gap-4 relative">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="p-3 bg-indigo-600/30 rounded-xl border border-indigo-500/30 text-indigo-400">
-            <i class="fa-solid fa-book-bookmark text-xl"></i>
+          <div class="p-3 bg-green-500/10 rounded-xl border border-green-500/20 text-green-500">
+            <i class="fa-solid fa-server text-lg"></i>
           </div>
           <div>
-            <h1 class="text-xl font-bold" id="welcome-title">مرحباً بك في المكتبة الرقمية الجامعية</h1>
-            <span id="role-badge" class="inline-block px-3 py-1 text-xs rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mt-1">طالب</span>
+            <h1 class="text-lg font-bold text-white" id="welcome-title">مرحباً بك</h1>
+            <span id="role-badge" class="inline-block px-2.5 py-0.5 text-xs rounded-md bg-green-500/15 text-green-400 border border-green-500/20 mt-1">طالب</span>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-3 flex-wrap">
           <div id="management-actions" class="hidden flex gap-2 flex-wrap">
-            <button onclick="openUsersModal()" class="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth">
+            <button onclick="playClickSound(); openUsersModal()" class="px-3.5 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 text-xs font-semibold rounded-xl transition flex items-center gap-2">
               <i class="fa-solid fa-users"></i> المستخدمين
             </button>
-            <button onclick="openAddStudentModal()" class="px-4 py-2 bg-emerald-600/80 hover:bg-emerald-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth">
+            <button onclick="playClickSound(); openAddStudentModal()" class="px-3.5 py-2 bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 text-xs font-semibold rounded-xl transition flex items-center gap-2">
               <i class="fa-solid fa-user-plus"></i> + طالب
             </button>
-            <button onclick="openAddSubjectModal()" id="admin-add-subject-btn" class="hidden px-4 py-2 bg-purple-600/80 hover:bg-purple-600 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth">
+            <button onclick="playClickSound(); openAddSubjectModal()" id="admin-add-subject-btn" class="hidden px-3.5 py-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 text-xs font-semibold rounded-xl transition flex items-center gap-2">
               <i class="fa-solid fa-folder-plus"></i> + مادة
             </button>
           </div>
 
-          <button onclick="logout()" class="px-4 py-2 bg-rose-600/20 text-rose-400 border border-rose-500/30 hover:bg-rose-600/30 text-sm font-semibold rounded-xl transition flex items-center gap-2 btn-smooth">
+          <button onclick="playClickSound(); logout()" class="px-3.5 py-2 bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 text-xs font-semibold rounded-xl transition flex items-center gap-2">
             <i class="fa-solid fa-right-from-bracket"></i> خروج
           </button>
         </div>
@@ -123,24 +192,17 @@
   </div>
 
   <script>
-    const SUPABASE_URL = "https://daapgugcfilwljswxwku.supabase.co";
+    const SUPABASE_URL = "https://daapugcfilwljswxwku.supabase.co";
     const SUPABASE_KEY = "sb_publishable__3MPuIGColJm2-LjAD3VbQ_y4ygMffp";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const ADMIN_CODE = "ADMIN2026";
     const SUBADMIN_CODE = "SUBADMIN2026";
 
-    let defaultSubjects = [
-      { id: '1', name: 'أساسيات إدارة الأعمال', doctor: 'أ.د.م. أحمد سيد عبد الباسط مصطفي', code: 'DOC101', content: [] },
-      { id: '2', name: 'مقدمة في نظم المعلومات', doctor: 'د. محمد حامد حامد', code: 'DOC102', content: [] },
-      { id: '3', name: 'المحاسبة المالية', doctor: 'د. ناهد سعد أحمد سعد', code: 'DOC103', content: [] },
-      { id: '4', name: 'مقدمة في الاقتصاد الجزئي', doctor: 'د. محمد عبد المنعم محمد الشهاوي', code: 'DOC104', content: [] },
-      { id: '5', name: 'رياضة مالية', doctor: 'أ.د.م. محمد جمال محمد إبراهيم', code: 'DOC105', content: [] }
-    ];
-
     let subjects = [];
     let students = [];
-    let currentUser = JSON.parse(localStorage.getItem('currentUser_v4')) || null;
+    let currentUser = savedUser ? JSON.parse(savedUser) : null;
+    let dataLoaded = false;
 
     window.onload = async function() {
       await loadDataFromSupabase();
@@ -151,60 +213,62 @@
 
     async function loadDataFromSupabase() {
       try {
-        const { data: dbStudents } = await supabaseClient.from('students').select('*');
-        if (dbStudents && dbStudents.length > 0) {
-          students = dbStudents;
-        } else {
-          students = [{ name: 'طالب تجريبي', code: '1234' }];
-        }
+        showLoader("جاري سحب البيانات من Supabase...");
+        const [subRes, stuRes] = await Promise.all([
+          supabaseClient.from('subjects').select('*'),
+          supabaseClient.from('students').select('*')
+        ]);
 
-        const { data: dbSubjects } = await supabaseClient.from('subjects').select('*');
-        if (dbSubjects && dbSubjects.length > 0) {
-          subjects = dbSubjects;
-        } else {
-          subjects = defaultSubjects;
-          for(let sub of defaultSubjects) {
-            await supabaseClient.from('subjects').upsert([sub]);
-          }
-        }
+        if (subRes.data) subjects = subRes.data;
+        if (stuRes.data) students = stuRes.data;
+        
+        dataLoaded = true;
+        hideLoader();
       } catch (err) {
-        console.log("خطأ في الاتصال، جارٍ استخدام النسخة المحلية");
-        subjects = defaultSubjects;
-        students = [{ name: 'طالب تجريبي', code: '1234' }];
+        hideLoader();
+        console.error("خطأ في الاتصال:", err);
       }
     }
 
     async function handleSmartLogin(e) {
       e.preventDefault();
+      playClickSound();
+      showLoader("جاري التحقق من الهوية...");
+      
       const nameInput = document.getElementById('user-name').value.trim();
       const codeInput = document.getElementById('user-code').value.trim();
 
-      await loadDataFromSupabase();
+      if (!dataLoaded) {
+        await loadDataFromSupabase();
+      }
 
       if (codeInput === ADMIN_CODE) {
-        currentUser = { role: 'admin', name: nameInput || 'مسؤول النظام (الأدمن)' };
+        currentUser = { role: 'admin', name: nameInput || 'مسؤول النظام الرئيسي' };
       } else if (codeInput === SUBADMIN_CODE) {
         currentUser = { role: 'subadmin', name: nameInput || 'مساعد مسؤول النظام' };
       } else {
-        const docSub = subjects.find(s => String(s.code).trim() === codeInput);
+        const docSub = subjects.find(s => String(s.code || '').trim() === codeInput);
         if (docSub) {
-          currentUser = { role: 'doctor', subjectId: docSub.id, name: nameInput ? `${nameInput} (${docSub.doctor})` : docSub.doctor };
+          currentUser = { role: 'doctor', subjectId: docSub.id, name: nameInput ? `${nameInput} (د. ${docSub.doctor || docSub.name})` : `دكتور ${docSub.doctor || 'المادة'}` };
         } else {
           const student = students.find(s => 
-            String(s.name).trim().toLowerCase() === nameInput.toLowerCase() && 
-            String(s.code).trim() === codeInput
+            String(s.code || s.student_code || '').trim() === codeInput && 
+            (!nameInput || String(s.name || s.student_name || '').trim().toLowerCase() === nameInput.toLowerCase())
           );
           
           if (student) {
-            currentUser = { role: 'student', name: student.name };
+            currentUser = { role: 'student', name: student.name || student.student_name || 'طالب' };
           } else {
-            alert('الاسم أو الكود السري غير صحيح، أو غير متطابقين في قاعدة البيانات!');
+            hideLoader();
+            alert('الكود السري غير صحيح أو غير متطابق مع الداتا المسجلة في سوبارباز!');
             return;
           }
         }
       }
 
-      localStorage.setItem('currentUser_v4', JSON.stringify(currentUser));
+      localStorage.setItem('currentUser_v16', JSON.stringify(currentUser));
+      hideLoader();
+      showToast("تم الاتصال وتسجيل الدخول بنجاح! 🚀");
       showAppScreen();
     }
 
@@ -216,18 +280,18 @@
       
       const badge = document.getElementById('role-badge');
       if (currentUser.role === 'admin') {
-        badge.innerText = 'مسؤول النظام (الأدمن)';
-        badge.className = 'inline-block px-3 py-1 text-xs rounded-full bg-rose-500/25 text-rose-300 border border-rose-500/40 mt-1';
+        badge.innerText = 'مسؤول النظام الرئيسي';
+        badge.className = 'inline-block px-2.5 py-0.5 text-xs rounded-md bg-rose-500/15 text-rose-400 border border-rose-500/20 mt-1';
         document.getElementById('admin-add-subject-btn').classList.remove('hidden');
       } else if (currentUser.role === 'subadmin') {
-        badge.innerText = 'مساعد مسؤول النظام';
-        badge.className = 'inline-block px-3 py-1 text-xs rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/40 mt-1';
+        badge.innerText = 'مساعد إدارة معتمد';
+        badge.className = 'inline-block px-2.5 py-0.5 text-xs rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/20 mt-1';
       } else if (currentUser.role === 'doctor') {
         badge.innerText = 'دكتور مادة';
-        badge.className = 'inline-block px-3 py-1 text-xs rounded-full bg-purple-500/25 text-purple-300 border border-purple-500/40 mt-1';
+        badge.className = 'inline-block px-2.5 py-0.5 text-xs rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/20 mt-1';
       } else {
         badge.innerText = 'طالب';
-        badge.className = 'inline-block px-3 py-1 text-xs rounded-full bg-indigo-500/25 text-indigo-300 border border-indigo-500/40 mt-1';
+        badge.className = 'inline-block px-2.5 py-0.5 text-xs rounded-md bg-green-500/15 text-green-400 border border-green-500/20 mt-1';
       }
 
       if (currentUser.role === 'admin' || currentUser.role === 'subadmin') {
@@ -237,10 +301,14 @@
       renderSubjects();
     }
 
-    async function renderSubjects() {
-      await loadDataFromSupabase();
+    function renderSubjects() {
       const grid = document.getElementById('subjects-grid');
       grid.innerHTML = '';
+
+      if (subjects.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400"><p>لا توجد مواد مسجلة في قاعدة البيانات حالياً.</p></div>`;
+        return;
+      }
 
       subjects.forEach(sub => {
         const isDoc = currentUser.role === 'doctor' && currentUser.subjectId === sub.id;
@@ -249,32 +317,33 @@
         const contentList = sub.content || [];
         
         let totalFiles = 0;
-        contentList.forEach(sec => {
-          if (sec.files) totalFiles += sec.files.length;
-        });
+        contentList.forEach(sec => { if (sec.files) totalFiles += sec.files.length; });
+
+        const subName = sub.name || sub.subject_name || 'مادة بدون عنوان';
+        const docName = sub.doctor || sub.doctor_name || 'غير محدد';
 
         grid.innerHTML += `
-          <div class="glass-card rounded-2xl p-6 flex flex-col justify-between relative group animate-fade">
+          <div class="supabase-exact-card rounded-2xl p-6 flex flex-col justify-between relative group animate-fade">
             <div>
               <div class="flex justify-between items-start mb-4">
-                <span class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-                  <i class="fa-solid fa-book-open text-2xl"></i>
+                <span class="p-3 bg-green-500/10 text-green-400 rounded-xl border border-green-500/20">
+                  <i class="fa-solid fa-book-open text-lg"></i>
                 </span>
                 <div class="flex gap-2 flex-wrap">
                   ${isAdmin ? `
-                    <button onclick="editSubject('${sub.id}')" title="تعديل المادة" class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 rounded-lg text-xs font-semibold transition btn-smooth"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="deleteSubject('${sub.id}')" title="حذف المادة بالكامل" class="px-2.5 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 rounded-lg text-xs font-semibold transition btn-smooth"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="playClickSound(); editSubject('${sub.id}')" title="تعديل المادة" class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="playClickSound(); deleteSubject('${sub.id}')" title="حذف المادة" class="px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-trash"></i></button>
                   ` : ''}
-                  ${canUpload ? `<span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg">صلاحية رفع</span>` : ''}
+                  ${canUpload ? `<span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-md">صلاحية رفع</span>` : ''}
                 </div>
               </div>
-              <h3 class="text-xl font-bold text-white mb-2">${sub.name}</h3>
-              <p class="text-sm text-gray-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-user-tie text-xs text-indigo-400"></i> ${sub.doctor}</p>
+              <h3 class="text-lg font-bold text-white mb-1 truncate-text" title="${subName}">${subName}</h3>
+              <p class="text-xs text-gray-400 mb-4 flex items-center gap-1.5 truncate-text"><i class="fa-solid fa-user-tie text-[11px] text-green-400"></i> ${docName}</p>
             </div>
 
-            <div class="pt-4 border-t border-white/10 flex justify-between items-center">
-              <span class="text-xs text-gray-400">${totalFiles} ملفات في ${contentList.length} أقسام</span>
-              <button onclick="openSubjectContent('${sub.id}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 btn-smooth shadow-lg shadow-indigo-600/20">
+            <div class="pt-4 border-t border-white/5 flex justify-between items-center">
+              <span class="text-xs text-gray-500">${totalFiles} ملفات في ${contentList.length} أقسام</span>
+              <button onclick="playClickSound(); openSubjectContent('${sub.id}')" class="px-3.5 py-2 btn-supabase-exact text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5 flex-shrink-0">
                 عرض المادة 📂
               </button>
             </div>
@@ -288,19 +357,14 @@
       const name = prompt('اسم المادة الجديدة:');
       if (!name) return;
       const doctor = prompt('اسم الدكتور المحاضر:');
-      const code = prompt('كود دخول الدكتور الخاص بالمادة (مثل DOC106):');
+      const code = prompt('كود دخول الدكتور للمادة:');
       
       if (name && doctor && code) {
-        const newSub = {
-          id: String(Date.now()),
-          name: name.trim(),
-          doctor: doctor.trim(),
-          code: code.trim(),
-          content: []
-        };
+        const newSub = { id: String(Date.now()), name: name.trim(), doctor: doctor.trim(), code: code.trim(), content: [] };
         await supabaseClient.from('subjects').upsert([newSub]);
-        await renderSubjects();
-        alert('تمت إضافة المادة الجديدة بنجاح أونلاين!');
+        await loadDataFromSupabase();
+        renderSubjects();
+        alert('تمت إضافة المادة بنجاح!');
       }
     }
 
@@ -311,11 +375,9 @@
 
       const newName = prompt('تعديل اسم المادة:', sub.name);
       if (newName === null) return;
-      
-      const newDoc = prompt('تعديل اسم الدكتور المحاضر:', sub.doctor);
+      const newDoc = prompt('تعديل اسم الدكتور:', sub.doctor);
       if (newDoc === null) return;
-
-      const newCode = prompt('تعديل كود دخول الدكتور للمادة:', sub.code);
+      const newCode = prompt('تعديل كود الدكتور:', sub.code);
       if (newCode === null) return;
 
       sub.name = newName || sub.name;
@@ -324,114 +386,95 @@
 
       await supabaseClient.from('subjects').upsert([sub]);
       renderSubjects();
-      alert('تم تحديث بيانات المادة وحفظها أونلاين بنجاح!');
+      alert('تم التعديل بنجاح!');
     }
 
     async function deleteSubject(subId) {
       if (currentUser.role !== 'admin') return;
-      const confirmDel = confirm('هل أنت متأكد من حذف هذه المادة بالكامل من المنصة؟');
-      if (!confirmDel) return;
+      if (!confirm('حذف هذه المادة بالكامل؟')) return;
 
       await supabaseClient.from('subjects').delete().eq('id', subId);
-      await renderSubjects();
-      alert('تم حذف المادة بنجاح!');
+      await loadDataFromSupabase();
+      renderSubjects();
+      alert('تم الحذف بنجاح!');
     }
 
     async function openSubjectContent(subId) {
-      await loadDataFromSupabase();
       const sub = subjects.find(s => s.id === subId);
       if (!sub) return;
 
       const isDoc = currentUser.role === 'doctor' && currentUser.subjectId === sub.id;
       const canManage = currentUser.role === 'admin' || currentUser.role === 'subadmin' || isDoc;
-
-      if (!sub.content || !Array.isArray(sub.content)) {
-        sub.content = [];
-      }
+      if (!sub.content) sub.content = [];
 
       let modalOverlay = document.getElementById('subject-modal-overlay');
       if (!modalOverlay) {
         modalOverlay = document.createElement('div');
         modalOverlay.id = 'subject-modal-overlay';
-        modalOverlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade';
+        modalOverlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade';
         document.body.appendChild(modalOverlay);
       }
 
+      const subName = sub.name || sub.subject_name || '';
+      const docName = sub.doctor || sub.doctor_name || '';
+
       let contentHtml = `
-        <div class="glass-card rounded-3xl p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto border border-white/20 shadow-2xl relative">
-            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-white">${sub.name}</h2>
-                    <p class="text-sm text-indigo-300 mt-1"><i class="fa-solid fa-user-tie"></i> د. ${sub.doctor}</p>
+        <div class="supabase-exact-card rounded-2xl p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto shadow-2xl relative">
+            <div class="flex justify-between items-center mb-5 border-b border-white/10 pb-3">
+                <div class="overflow-hidden pr-2">
+                    <h2 class="text-lg font-bold text-white truncate-text" title="${subName}">${subName}</h2>
+                    <p class="text-xs text-green-400 mt-0.5 truncate-text"><i class="fa-solid fa-user-tie"></i> د. ${docName}</p>
                 </div>
-                <button onclick="closeSubjectModal()" class="text-gray-400 hover:text-white p-2 rounded-xl bg-white/5 border border-white/10 transition">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button onclick="playClickSound(); closeSubjectModal()" class="text-gray-400 hover:text-white p-2 rounded-xl bg-white/5 transition flex-shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
       `;
 
       if (canManage) {
           contentHtml += `
-              <div class="mb-6 flex gap-3 flex-wrap bg-indigo-950/40 p-4 rounded-2xl border border-indigo-500/30">
-                  <button onclick="addNewSection('${sub.id}')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
-                      <i class="fa-solid fa-folder-plus"></i> + إضافة قسم جديد (مثل: الأسبوع الأول)
+              <div class="mb-5 flex gap-2.5 flex-wrap bg-[#090a0d] p-3.5 rounded-xl border border-white/5">
+                  <button onclick="playClickSound(); addNewSection('${sub.id}')" class="px-3.5 py-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                      <i class="fa-solid fa-folder-plus"></i> + قسم جديد (محاضرات / سيكاشن)
                   </button>
-                  <button onclick="addNewFileToSubject('${sub.id}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-lg btn-smooth">
-                      <i class="fa-solid fa-file-arrow-up"></i> + إضافة ملف PDF لقسم
+                  <button onclick="playClickSound(); addNewFileToSubject('${sub.id}')" class="px-3.5 py-2 btn-supabase-exact text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                      <i class="fa-solid fa-file-arrow-up"></i> + رفع ملف PDF
                   </button>
               </div>
           `;
       }
 
       if (sub.content.length === 0) {
-          contentHtml += `
-              <div class="text-center py-12 text-gray-400">
-                  <i class="fa-solid fa-folder-open text-4xl mb-3 text-indigo-400"></i>
-                  <p>لا توجد أقسام أو ملفات مرفوعة لهذه المادة حتى الآن.</p>
-              </div>
-          `;
+          contentHtml += `<div class="text-center py-10 text-gray-500"><i class="fa-solid fa-folder-open text-3xl mb-2 text-gray-600"></i><p class="text-xs">لا توجد أقسام أو ملفات مرفوعة.</p></div>`;
       } else {
-          contentHtml += `<div class="space-y-6">`;
+          contentHtml += `<div class="space-y-4">`;
           sub.content.forEach((section, sIndex) => {
               contentHtml += `
-                  <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
-                      <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
-                          <h3 class="font-bold text-lg text-indigo-200 flex items-center gap-2">
-                              <i class="fa-solid fa-bookmark text-indigo-400 text-sm"></i> ${section.sectionTitle || 'محتوى عام'}
-                          </h3>
-                          ${canManage ? `
-                              <button onclick="deleteSection('${sub.id}',${sIndex})" class="text-rose-400 hover:text-rose-300 text-xs px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 rounded-lg transition btn-smooth">
-                                  <i class="fa-solid fa-trash"></i> حذف القسم
-                              </button>
-                          ` : ''}
+                  <div class="bg-[#090a0d] border border-white/5 rounded-xl p-3.5">
+                      <div class="flex justify-between items-center mb-2.5 border-b border-white/5 pb-2">
+                          <h3 class="font-bold text-sm text-green-300 truncate-text pr-2"><i class="fa-solid fa-bookmark text-green-500 text-xs ml-1"></i> ${section.sectionTitle}</h3>
+                          ${canManage ? `<button onclick="playClickSound(); deleteSection('${sub.id}',${sIndex})" class="text-rose-400 hover:text-rose-300 text-[11px] px-2 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-md transition flex-shrink-0"><i class="fa-solid fa-trash"></i></button>` : ''}
                       </div>
               `;
-
               if (!section.files || section.files.length === 0) {
-                  contentHtml += `<p class="text-xs text-gray-400 py-2">لا توجد ملفات في هذا القسم بعد.</p>`;
+                  contentHtml += `<p class="text-[11px] text-gray-500 py-1">لا توجد ملفات.</p>`;
               } else {
                   contentHtml += `<div class="space-y-2">`;
                   section.files.forEach((file, fIndex) => {
                       contentHtml += `
-                          <div class="flex justify-between items-center bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition">
-                              <div class="flex items-center gap-3">
-                                  <span class="p-2 bg-red-500/20 text-red-400 rounded-lg border border-red-500/30">
-                                      <i class="fa-solid fa-file-pdf"></i>
-                                  </span>
-                                  <div>
-                                      <h4 class="font-semibold text-sm text-white">${file.title}</h4>
-                                      <span class="text-xs text-gray-400">${file.date || ''}</span>
+                          <div class="flex justify-between items-center bg-white/5 hover:bg-white/10 p-2.5 rounded-lg border border-white/5 transition gap-2">
+                              <div class="flex items-center gap-2.5 overflow-hidden">
+                                  <span class="p-1.5 bg-red-500/15 text-red-400 rounded-md border border-red-500/20 flex-shrink-0 text-xs"><i class="fa-solid fa-file-pdf"></i></span>
+                                  <div class="overflow-hidden">
+                                      <h4 class="font-semibold text-xs text-white truncate-text" title="${file.title}">${file.title}</h4>
+                                      <span class="text-[10px] text-gray-500">${file.date || ''}</span>
                                   </div>
                               </div>
-                              <div class="flex items-center gap-2">
-                                  <a href="${file.link}" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5 btn-smooth">
-                                      <i class="fa-solid fa-eye"></i> عرض
+                              <div class="flex items-center gap-1.5 flex-shrink-0">
+                                  <a href="${file.link}" target="_blank" onclick="playClickSound()" class="px-2.5 py-1 btn-supabase-exact text-white text-[11px] font-medium rounded-md transition flex items-center gap-1" title="عرض الملف">
+                                      <i class="fa-solid fa-eye text-[10px]"></i> عرض
                                   </a>
-                                  ${canManage ? `
-                                      <button onclick="deleteFile('${sub.id}',${sIndex},${fIndex})" class="p-1.5 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 rounded-lg text-xs transition btn-smooth" title="حذف الملف">
-                                          <i class="fa-solid fa-trash"></i>
-                                      </button>
-                                  ` : ''}
+                                  ${canManage ? `<button onclick="playClickSound(); deleteFile('${sub.id}', ${sIndex},${fIndex})" class="p-1 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 rounded-md text-[11px] transition" title="حذف الملف"><i class="fa-solid fa-trash"></i></button>` : ''}
                               </div>
                           </div>
                       `;
@@ -442,7 +485,6 @@
           });
           contentHtml += `</div>`;
       }
-
       contentHtml += `</div>`;
       modalOverlay.innerHTML = contentHtml;
     }
@@ -455,12 +497,10 @@
     async function addNewSection(subId) {
         const sub = subjects.find(s => s.id === subId);
         if (!sub) return;
-        const secTitle = prompt('عنوان القسم (مثل: الأسبوع الأول / المحاضرات):');
+        const secTitle = prompt('عنوان القسم (مثل: محاضرات الأسبوع الأول / سكشن رقم 1):');
         if (!secTitle) return;
 
-        if (!sub.content) sub.content = [];
         sub.content.push({ sectionTitle: secTitle.trim(), files: [] });
-
         await supabaseClient.from('subjects').upsert([sub]);
         openSubjectContent(subId);
         renderSubjects();
@@ -468,82 +508,76 @@
 
     async function addNewFileToSubject(subId) {
         const sub = subjects.find(s => s.id === subId);
-        if (!sub || !sub.content || sub.content.length === 0) {
-            alert('الرجاء إضافة قسم أولاً لتتمكن من رفع الملف بداخله!');
+        if (!sub || sub.content.length === 0) {
+            alert('الرجاء إضافة قسم أولاً!');
             return;
         }
 
-        let listSec = "اختر رقم القسم المراد الرفع فيه:\n";
-        sub.content.forEach((sec, idx) => {
-            listSec += `${idx + 1}. ${sec.sectionTitle}\n`;
-        });
+        let listSec = "اختر رقم القسم:\n";
+        sub.content.forEach((sec, idx) => { listSec += `${idx + 1}. ${sec.sectionTitle}\n`; });
         const sIdx = parseInt(prompt(listSec)) - 1;
 
         if (isNaN(sIdx) || sIdx < 0 || sIdx >= sub.content.length) return;
 
         const title = prompt('اسم الملف (PDF Title):');
-        const link = prompt('رابط الملف (رابط مباشر أو رابط Google Drive):');
+        const link = prompt('رابط الملف (أو Google Drive للـ PDF):');
 
         if (title && link) {
-            if (!sub.content[sIdx].files) sub.content[sIdx].files = [];
             sub.content[sIdx].files.push({
                 id: String(Date.now()),
                 title: title.trim(),
                 link: link.trim(),
                 date: new Date().toLocaleDateString('ar-EG')
             });
-
             await supabaseClient.from('subjects').upsert([sub]);
             openSubjectContent(subId);
             renderSubjects();
-            alert('تم رفع الملف بنجاح وحفظه أونلاين!');
+            alert('تم رفع الملف بنجاح!');
         }
     }
 
-    async function deleteSection(subId, sIndex) {
+    async function deleteSection(subId, sIdx) {
         const sub = subjects.find(s => s.id === subId);
-        if (!sub || !confirm('هل أنت متأكد من حذف هذا القسم بالكامل؟')) return;
-
-        sub.content.splice(sIndex, 1);
+        if (!sub || !confirm('حذف هذا القسم؟')) return;
+        sub.content.splice(sIdx, 1);
         await supabaseClient.from('subjects').upsert([sub]);
         openSubjectContent(subId);
         renderSubjects();
     }
 
-    async function deleteFile(subId, sIndex, fIndex) {
+    async function deleteFile(subId, sIdx, fIdx) {
         const sub = subjects.find(s => s.id === subId);
-        if (!sub || !confirm('هل أنت متأكد من حذف هذا الملف؟')) return;
-
-        sub.content[sIndex].files.splice(fIndex, 1);
+        if (!sub || !confirm('حذف هذا الملف؟')) return;
+        sub.content[sIdx].files.splice(fIdx, 1);
         await supabaseClient.from('subjects').upsert([sub]);
         openSubjectContent(subId);
         renderSubjects();
     }
 
     async function openAddStudentModal() {
-      if (currentUser.role !== 'admin' && currentUser.role !== 'subadmin') return;
-      const name = prompt('اسم الطالب الجديد:');
-      if (!name) return;
-      const code = prompt('كود الطالب الخاص بالدخول:');
-      if (!code) return;
-
+      const name = prompt('اسم الطالب:');
+      const code = prompt('كود الطالب:');
       if (name && code) {
-        await supabaseClient.from('students').insert([{ name: name.trim(), code: code.trim() }]);
+        await supabaseClient.from('students').insert([{ name: name.trim(), code: String(code).trim() }]);
         await loadDataFromSupabase();
-        alert('تمت إضافة الطالب بنجاح لقاعدة البيانات أونلاين!');
+        alert('تمت إضافة الطالب بنجاح وقيده في قاعدة البيانات!');
       }
     }
 
     function openUsersModal() {
-      let info = "قائمة الطلاب المسجلين في النظام:\n\n";
-      students.forEach(s => {
-        info += `- ${s.name} (الكود: ${s.code})\n`;
+      let info = "الطلاب والدكاترة المسجلين في سوبارباز:\n\n-- الدكاترة والمواد --\n";
+      subjects.forEach(s => { 
+        info += `${s.name || s.subject_name}: د. ${s.doctor || s.doctor_name} (كود: ${s.code})\n`; 
+      });
+      info += "\n-- الطلاب --\n";
+      students.forEach(s => { 
+        info += `${s.name || s.student_name} (كود: ${s.code || s.student_code})\n`; 
       });
       alert(info);
     }
 
     function logout() {
-      localStorage.removeItem('currentUser_v4');
+      localStorage.removeItem('currentUser_v16');
       location.reload();
     }
   </script>
